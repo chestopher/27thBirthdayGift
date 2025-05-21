@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Connections</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin: 0;
+            color: #333;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tile {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: white;
+            transition: all 0.2s ease;
+            padding: 10px;
+            font-size: 16px;
+            user-select: none;
+        }
+        
+        .tile:hover {
+            border-color: #aaa;
+            background-color: #f9f9f9;
+        }
+        
+        .tile.selected {
+            border-color: #333;
+            background-color: #e6e6e6;
+        }
+        
+        .tile.correct {
+            color: white;
+            border: none;
+        }
+        
+        .yellow-group {
+            background-color: #f9df6d;
+        }
+        
+        .green-group {
+            background-color: #a0c35a;
+        }
+        
+        .blue-group {
+            background-color: #b0c4ef;
+        }
+        
+        .purple-group {
+            background-color: #ba81c5;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 16px;
+        }
+        
+        .submit-btn {
+            background-color: #4c7cff;
+            color: white;
+        }
+        
+        .submit-btn:hover {
+            background-color: #3a68e0;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .shuffle-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .shuffle-btn:hover {
+            background-color: #e6e6e6;
+        }
+        
+        .deselect-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .deselect-btn:hover {
+            background-color: #e6e6e6;
+        }
+        
+        .message {
+            text-align: center;
+            height: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+        }
+        
+        .success-message {
+            color: #2ecc71;
+        }
+        
+        .groups-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .group {
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .group-header {
+            padding: 10px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .group-tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .group-tile {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            font-size: 14px;
+        }
+        
+        .yellow-header {
+            background-color: #f9df6d;
+            color: #333;
+        }
+        
+        .green-header {
+            background-color: #a0c35a;
+        }
+        
+        .blue-header {
+            background-color: #b0c4ef;
+            color: #333;
+        }
+        
+        .purple-header {
+            background-color: #ba81c5;
+        }
+        
+        .instructions {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .instructions h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .lives-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .lives-label {
+            margin-right: 10px;
+        }
+        
+        .life {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            margin: 0 3px;
+        }
+        
+        .life.lost {
+            background-color: #ccc;
+        }
+        
+        .win-message {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            animation: rainbow 2s linear infinite;
+        }
+        
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            14% { color: #ff7f00; }
+            28% { color: #ffff00; }
+            42% { color: #00ff00; }
+            57% { color: #0000ff; }
+            71% { color: #4b0082; }
+            85% { color: #9400d3; }
+            100% { color: #ff0000; }
+        }
+        
+        .show-instructions-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .show-instructions-btn:hover {
+            background-color: #e6e6e6;
+        }
+        
+        .reset-btn {
+            background-color: #e74c3c;
+            color: white;
+            margin-top: 15px;
+        }
+        
+        .reset-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .group-tiles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tile, .group-tile {
+                height: 60px;
+                font-size: 14px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Birthday Connections</h1>
+        <div class="subtitle">Find groups of words that share something in common</div>
+    </header>
+    
+    <div class="game-container">
+        <div class="lives-container">
+            <span class="lives-label">Mistakes:</span>
+            <span class="life"></span>
+            <span class="life"></span>
+            <span class="life"></span>
+            <span class="life"></span>
+        </div>
+        
+        <div class="grid-container" id="grid"></div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="controls">
+            <button class="submit-btn" id="submitBtn" disabled>Submit</button>
+            <button class="deselect-btn" id="deselectBtn">Deselect All</button>
+            <button class="shuffle-btn" id="shuffleBtn">Shuffle</button>
+        </div>
+        
+        <div class="groups-container" id="groupsContainer"></div>
+    </div>
+    
+    <button class="show-instructions-btn" id="showInstructionsBtn">How To Play</button>
+    
+    <div class="instructions" id="instructions" style="display: none;">
+        <h2>How To Play</h2>
+        <p>Your goal is to find four groups of four related words.</p>
+        <p>Select four tiles that you think belong together, then press Submit.</p>
+        <p>If you're right, the tiles will be removed from play and categorized.</p>
+        <p>If you're wrong, you'll lose a life. You have 4 mistakes allowed.</p>
+        <p>Categories are arranged from easier (yellow) to harder (purple).</p>
+        <p>Good luck!</p>
+    </div>
+    
+    <button class="reset-btn" id="resetBtn">New Game</button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game data
+            const categories = [
+                {
+                    name: "Monopoly Board Properties",
+                    color: "yellow",
+                    items: ["Trafalgar Square", "Leicester Square", "King's Cross", "Regent's Street"]
+                },
+                {
+                    name: "Beloved Drinks",
+                    color: "green",
+                    items: ["Beer", "Water", "Whiskey", "Chai"]
+                },
+                {
+                    name: "Camden Passage Favourites",
+                    color: "blue",
+                    items: ["Tea", "Haircut", "Massage", "Baked goods"]
+                },
+                {
+                    name: "Beginnings of Beloved Song Titles",
+                    color: "purple",
+                    items: ["St Paul", "California", "Crying", "Whistle"]
+                }
+            ];
+            
+            // Game state
+            let tiles = [];
+            let selectedTiles = [];
+            let solvedGroups = [];
+            let lives = 4;
+            let isGameOver = false;
+            
+            // Initialize the game
+            function initGame() {
+                // Flatten all items into a single array
+                tiles = categories.flatMap(category => 
+                    category.items.map(item => ({
+                        text: item,
+                        category: category.name,
+                        color: category.color,
+                        selected: false,
+                        solved: false
+                    }))
+                );
+                
+                // Shuffle tiles
+                shuffleTiles();
+                
+                // Render the grid
+                renderGrid();
+                
+                // Reset game state
+                selectedTiles = [];
+                solvedGroups = [];
+                lives = 4;
+                isGameOver = false;
+                
+                // Update UI
+                updateLives();
+                updateSubmitButton();
+                document.getElementById('groupsContainer').innerHTML = '';
+                document.getElementById('message').textContent = '';
+                document.getElementById('message').classList.remove('error-message', 'success-message');
+            }
+            
+            // Shuffle tiles
+            function shuffleTiles() {
+                for (let i = tiles.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+                }
+            }
+            
+            // Render the grid
+            function renderGrid() {
+                const grid = document.getElementById('grid');
+                grid.innerHTML = '';
+                
+                for (let i = 0; i < tiles.length; i++) {
+                    const tile = tiles[i];
+                    if (!tile.solved) {
+                        const tileElement = document.createElement('div');
+                        tileElement.classList.add('tile');
+                        if (tile.selected) {
+                            tileElement.classList.add('selected');
+                        }
+                        tileElement.textContent = tile.text;
+                        tileElement.dataset.index = i;
+                        
+                        tileElement.addEventListener('click', () => {
+                            if (isGameOver) return;
+                            toggleTile(i);
+                        });
+                        
+                        grid.appendChild(tileElement);
+                    }
+                }
+            }
+            
+            // Toggle tile selection
+            function toggleTile(index) {
+                const tile = tiles[index];
+                
+                if (tile.selected) {
+                    // Deselect
+                    tile.selected = false;
+                    selectedTiles = selectedTiles.filter(t => t !== index);
+                } else {
+                    // Only allow selecting if less than 4 are already selected
+                    if (selectedTiles.length < 4) {
+                        tile.selected = true;
+                        selectedTiles.push(index);
+                    } else {
+                        showMessage("Only 4 tiles can be selected", "error");
+                        return;
+                    }
+                }
+                
+                renderGrid();
+                updateSubmitButton();
+            }
+            
+            // Check if selected tiles form a valid group
+            function checkSelection() {
+                if (selectedTiles.length !== 4) return false;
+                
+                const selectedCategories = selectedTiles.map(index => tiles[index].category);
+                return selectedCategories.every(cat => cat === selectedCategories[0]);
+            }
+            
+            // Submit the current selection
+            function submitSelection() {
+                if (checkSelection()) {
+                    // Correct group!
+                    const category = tiles[selectedTiles[0]].category;
+                    const color = tiles[selectedTiles[0]].color;
+                    
+                    // Mark tiles as solved
+                    selectedTiles.forEach(index => {
+                        tiles[index].solved = true;
+                        tiles[index].selected = false;
+                    });
+                    
+                    // Add to solved groups
+                    solvedGroups.push({
+                        name: category,
+                        color: color,
+                        tiles: selectedTiles.map(index => tiles[index].text)
+                    });
+                    
+                    // Clear selection
+                    selectedTiles = [];
+                    
+                    // Show message
+                    showMessage(`Correct! "${category}" group found!`, "success");
+                    
+                    // Update UI
+                    renderGrid();
+                    renderGroups();
+                    updateSubmitButton();
+                    
+                    // Check if game is won
+                    if (solvedGroups.length === categories.length) {
+                        isGameOver = true;
+                        showWinMessage();
+                    }
+                } else {
+                    // Wrong group
+                    lives--;
+                    updateLives();
+                    
+                    // Show message
+                    showMessage("Not a valid group. Try again!", "error");
+                    
+                    // Clear selection
+                    selectedTiles.forEach(index => {
+                        tiles[index].selected = false;
+                    });
+                    selectedTiles = [];
+                    
+                    // Update UI
+                    renderGrid();
+                    updateSubmitButton();
+                    
+                    // Check if game is over
+                    if (lives <= 0) {
+                        isGameOver = true;
+                        showGameOver();
+                    }
+                }
+            }
+            
+            // Render solved groups
+            function renderGroups() {
+                const groupsContainer = document.getElementById('groupsContainer');
+                groupsContainer.innerHTML = '';
+                
+                // Sort groups by color difficulty
+                const colorOrder = { "yellow": 1, "green": 2, "blue": 3, "purple": 4 };
+                solvedGroups.sort((a, b) => colorOrder[a.color] - colorOrder[b.color]);
+                
+                solvedGroups.forEach(group => {
+                    const groupElement = document.createElement('div');
+                    groupElement.classList.add('group');
+                    
+                    const headerElement = document.createElement('div');
+                    headerElement.classList.add('group-header', `${group.color}-header`);
+                    headerElement.innerHTML = `<span>${group.name}</span>`;
+                    
+                    const tilesElement = document.createElement('div');
+                    tilesElement.classList.add('group-tiles');
+                    
+                    group.tiles.forEach(tileText => {
+                        const tileElement = document.createElement('div');
+                        tileElement.classList.add('group-tile');
+                        tileElement.textContent = tileText;
+                        tilesElement.appendChild(tileElement);
+                    });
+                    
+                    groupElement.appendChild(headerElement);
+                    groupElement.appendChild(tilesElement);
+                    groupsContainer.appendChild(groupElement);
+                });
+            }
+            
+            // Update lives display
+            function updateLives() {
+                const lifeElements = document.querySelectorAll('.life');
+                for (let i = 0; i < lifeElements.length; i++) {
+                    if (i < lives) {
+                        lifeElements[i].classList.remove('lost');
+                    } else {
+                        lifeElements[i].classList.add('lost');
+                    }
+                }
+            }
+            
+            // Update submit button state
+            function updateSubmitButton() {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = selectedTiles.length !== 4 || isGameOver;
+            }
+            
+            // Show message
+            function showMessage(text, type) {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = text;
+                
+                messageElement.classList.remove('error-message', 'success-message');
+                if (type === 'error') {
+                    messageElement.classList.add('error-message');
+                } else if (type === 'success') {
+                    messageElement.classList.add('success-message');
+                }
+                
+                // Clear message after a delay if not game over
+                if (!isGameOver) {
+                    setTimeout(() => {
+                        messageElement.textContent = '';
+                        messageElement.classList.remove('error-message', 'success-message');
+                    }, 3000);
+                }
+            }
+            
+            // Show win message
+            function showWinMessage() {
+                const gameContainer = document.querySelector('.game-container');
+                const winMessage = document.createElement('div');
+                winMessage.classList.add('win-message');
+                winMessage.textContent = 'Congratulations! You solved all connections! Happy Birthday!';
+                gameContainer.appendChild(winMessage);
+            }
+            
+            // Show game over message
+            function showGameOver() {
+                showMessage("Game Over! You ran out of lives.", "error");
+            }
+            
+            // Event Listeners
+            document.getElementById('submitBtn').addEventListener('click', submitSelection);
+            
+            document.getElementById('deselectBtn').addEventListener('click', () => {
+                if (isGameOver) return;
+                
+                selectedTiles.forEach(index => {
+                    tiles[index].selected = false;
+                });
+                selectedTiles = [];
+                renderGrid();
+                updateSubmitButton();
+            });
+            
+            document.getElementById('shuffleBtn').addEventListener('click', () => {
+                if (isGameOver) return;
+                
+                // Deselect all tiles first
+                selectedTiles.forEach(index => {
+                    tiles[index].selected = false;
+                });
+                selectedTiles = [];
+                
+                // Get only unsolved tiles
+                const unsolvedTiles = tiles.filter(tile => !tile.solved);
+                
+                // Shuffle those tiles
+                for (let i = unsolvedTiles.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [unsolvedTiles[i], unsolvedTiles[j]] = [unsolvedTiles[j], unsolvedTiles[i]];
+                }
+                
+                // Replace unsolved tiles in the original array
+                let unsolvedIndex = 0;
+                for (let i = 0; i < tiles.length; i++) {
+                    if (!tiles[i].solved) {
+                        tiles[i] = unsolvedTiles[unsolvedIndex++];
+                    }
+                }
+                
+                renderGrid();
+                updateSubmitButton();
+            });
+            
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                initGame();
+            });
+            
+            document.getElementById('showInstructionsBtn').addEventListener('click', () => {
+                const instructions = document.getElementById('instructions');
+                instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

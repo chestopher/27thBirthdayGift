@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Wordle</title>
+    <style>
+        body {
+            font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121213;
+            color: #d7dadc;
+        }
+        
+        header {
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid #3a3a3c;
+            padding-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.2rem;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 350px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        
+        .tile {
+            width: 62px;
+            height: 62px;
+            border: 2px solid #3a3a3c;
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .key {
+            background-color: #818384;
+            color: white;
+            font-family: inherit;
+            font-weight: bold;
+            border: 0;
+            padding: 0;
+            margin: 0 6px 0 0;
+            height: 58px;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.3);
+        }
+        
+        .key-wide {
+            flex: 1.5;
+        }
+        
+        .key:last-of-type {
+            margin: 0;
+        }
+        
+        .correct {
+            background-color: #538d4e;
+            border-color: #538d4e;
+            color: white;
+        }
+        
+        .present {
+            background-color: #b59f3b;
+            border-color: #b59f3b;
+            color: white;
+        }
+        
+        .absent {
+            background-color: #3a3a3c;
+            border-color: #3a3a3c;
+            color: white;
+        }
+        
+        .animation {
+            animation: flip 0.5s ease forwards;
+        }
+        
+        @keyframes flip {
+            0% {
+                transform: rotateX(0);
+            }
+            45% {
+                transform: rotateX(90deg);
+            }
+            55% {
+                transform: rotateX(90deg);
+            }
+            100% {
+                transform: rotateX(0);
+            }
+        }
+        
+        .shake {
+            animation: shake 0.25s;
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0) }
+            25% { transform: translateX(5px) }
+            50% { transform: translateX(-5px) }
+            75% { transform: translateX(5px) }
+            100% { transform: translateX(0) }
+        }
+        
+        .message {
+            height: 30px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .win-message {
+            animation: rainbow 2s linear infinite;
+        }
+        
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            14% { color: #ff7f00; }
+            28% { color: #ffff00; }
+            42% { color: #00ff00; }
+            57% { color: #0000ff; }
+            71% { color: #4b0082; }
+            85% { color: #9400d3; }
+            100% { color: #ff0000; }
+        }
+        
+        .how-to-play {
+            margin-top: 20px;
+            background-color: #262627;
+            padding: 15px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 500px;
+            display: none;
+        }
+        
+        .how-to-play h2 {
+            margin-top: 0;
+        }
+        
+        .show-how-to-play, .reset-game {
+            background-color: #538d4e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .reset-game {
+            background-color: #b59f3b;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Birthday Wordle</h1>
+    </header>
+    
+    <div class="game-container">
+        <div class="board" id="board"></div>
+        <div class="message" id="message"></div>
+        <div class="keyboard">
+            <div class="keyboard-row">
+                <button class="key" data-key="q">q</button>
+                <button class="key" data-key="w">w</button>
+                <button class="key" data-key="e">e</button>
+                <button class="key" data-key="r">r</button>
+                <button class="key" data-key="t">t</button>
+                <button class="key" data-key="y">y</button>
+                <button class="key" data-key="u">u</button>
+                <button class="key" data-key="i">i</button>
+                <button class="key" data-key="o">o</button>
+                <button class="key" data-key="p">p</button>
+            </div>
+            <div class="keyboard-row">
+                <div style="flex: 0.5"></div>
+                <button class="key" data-key="a">a</button>
+                <button class="key" data-key="s">s</button>
+                <button class="key" data-key="d">d</button>
+                <button class="key" data-key="f">f</button>
+                <button class="key" data-key="g">g</button>
+                <button class="key" data-key="h">h</button>
+                <button class="key" data-key="j">j</button>
+                <button class="key" data-key="k">k</button>
+                <button class="key" data-key="l">l</button>
+                <div style="flex: 0.5"></div>
+            </div>
+            <div class="keyboard-row">
+                <button class="key key-wide" data-key="Enter">enter</button>
+                <button class="key" data-key="z">z</button>
+                <button class="key" data-key="x">x</button>
+                <button class="key" data-key="c">c</button>
+                <button class="key" data-key="v">v</button>
+                <button class="key" data-key="b">b</button>
+                <button class="key" data-key="n">n</button>
+                <button class="key" data-key="m">m</button>
+                <button class="key key-wide" data-key="Backspace">⌫</button>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <button class="show-how-to-play" id="showHowToPlay">How to Play</button>
+        <button class="reset-game" id="resetGame">New Game</button>
+    </div>
+    
+    <div class="how-to-play" id="howToPlay">
+        <h2>How to Play</h2>
+        <p>Guess the WORDLE in 6 tries.</p>
+        <ul>
+            <li>Each guess must be a valid 5-letter word.</li>
+            <li>The color of the tiles will change to show how close your guess was to the word.</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <p>Green: The letter is in the word and in the correct spot.</p>
+        <p>Yellow: The letter is in the word but in the wrong spot.</p>
+        <p>Gray: The letter is not in the word.</p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const WORD_LENGTH = 5;
+            const ROWS = 6;
+            const SOLUTION = "LEMON"; // The fixed solution
+            
+            let currentRow = 0;
+            let currentTile = 0;
+            let isGameOver = false;
+            
+            // Create the game board
+            function createBoard() {
+                const boardElement = document.getElementById('board');
+                for (let i = 0; i < ROWS; i++) {
+                    const row = document.createElement('div');
+                    row.classList.add('row');
+                    
+                    for (let j = 0; j < WORD_LENGTH; j++) {
+                        const tile = document.createElement('div');
+                        tile.classList.add('tile');
+                        tile.dataset.state = 'empty';
+                        tile.id = `tile-${i}-${j}`;
+                        row.appendChild(tile);
+                    }
+                    
+                    boardElement.appendChild(row);
+                }
+            }
+            
+            // Handle key input
+            function handleKeyPress(key) {
+                if (isGameOver) return;
+                
+                if (key === 'Enter') {
+                    submitGuess();
+                } else if (key === 'Backspace') {
+                    deleteLetter();
+                } else if (/^[a-zA-Z]$/.test(key) && currentTile < WORD_LENGTH) {
+                    addLetter(key);
+                }
+            }
+            
+            // Add letter to the current tile
+            function addLetter(letter) {
+                if (currentTile < WORD_LENGTH) {
+                    const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+                    tile.textContent = letter.toUpperCase();
+                    tile.dataset.state = 'filled';
+                    tile.dataset.letter = letter.toUpperCase();
+                    currentTile++;
+                }
+            }
+            
+            // Delete letter from the previous tile
+            function deleteLetter() {
+                if (currentTile > 0) {
+                    currentTile--;
+                    const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+                    tile.textContent = '';
+                    tile.dataset.state = 'empty';
+                    tile.dataset.letter = '';
+                }
+            }
+            
+            // Submit the current guess
+            function submitGuess() {
+                if (currentTile !== WORD_LENGTH) {
+                    shakeRow();
+                    showMessage("Not enough letters");
+                    return;
+                }
+                
+                const guess = getCurrentGuess();
+                
+                // For simplicity, we're not checking against a dictionary
+                // In a full implementation, you'd validate the word here
+                
+                updateTiles(guess);
+                
+                // Check if the game is won
+                if (guess === SOLUTION) {
+                    isGameOver = true;
+                    showMessage("Correct! Happy Birthday!", true);
+                    return;
+                }
+                
+                // Move to the next row
+                currentRow++;
+                currentTile = 0;
+                
+                // Check if the game is lost
+                if (currentRow >= ROWS) {
+                    isGameOver = true;
+                    showMessage(`Game over! The word was ${SOLUTION}`);
+                }
+            }
+            
+            // Get the current guess from the tiles
+            function getCurrentGuess() {
+                let guess = '';
+                for (let i = 0; i < WORD_LENGTH; i++) {
+                    const tile = document.getElementById(`tile-${currentRow}-${i}`);
+                    guess += tile.dataset.letter || '';
+                }
+                return guess;
+            }
+            
+            // Update tiles with correct colors based on the guess
+            function updateTiles(guess) {
+                const solutionChars = SOLUTION.split('');
+                const guessChars = guess.split('');
+                
+                // First pass: Mark correct positions
+                const correctPositions = new Set();
+                const usedIndices = new Set();
+                
+                for (let i = 0; i < WORD_LENGTH; i++) {
+                    if (guessChars[i] === solutionChars[i]) {
+                        correctPositions.add(i);
+                        usedIndices.add(i);
+                    }
+                }
+                
+                // Apply animations with delay
+                for (let i = 0; i < WORD_LENGTH; i++) {
+                    const tile = document.getElementById(`tile-${currentRow}-${i}`);
+                    const key = document.querySelector(`[data-key="${guessChars[i].toLowerCase()}"]`);
+                    
+                    // Add flip animation
+                    setTimeout(() => {
+                        tile.classList.add('animation');
+                        
+                        setTimeout(() => {
+                            // During the middle of the flip, update the color
+                            if (correctPositions.has(i)) {
+                                // Correct position
+                                tile.classList.add('correct');
+                                key.classList.add('correct');
+                            } else {
+                                // Check if the letter exists elsewhere
+                                let letterExists = false;
+                                for (let j = 0; j < WORD_LENGTH; j++) {
+                                    if (!usedIndices.has(j) && guessChars[i] === solutionChars[j]) {
+                                        letterExists = true;
+                                        usedIndices.add(j);
+                                        break;
+                                    }
+                                }
+                                
+                                if (letterExists) {
+                                    // Present but wrong position
+                                    tile.classList.add('present');
+                                    if (!key.classList.contains('correct')) {
+                                        key.classList.add('present');
+                                    }
+                                } else {
+                                    // Not present
+                                    tile.classList.add('absent');
+                                    if (!key.classList.contains('correct') && !key.classList.contains('present')) {
+                                        key.classList.add('absent');
+                                    }
+                                }
+                            }
+                        }, 250); // Middle of the flip animation
+                    }, i * 300); // Staggered start for each tile
+                }
+            }
+            
+            // Shake the current row when there's an error
+            function shakeRow() {
+                const row = document.querySelector(`#board .row:nth-child(${currentRow + 1})`);
+                row.classList.add('shake');
+                setTimeout(() => {
+                    row.classList.remove('shake');
+                }, 300);
+            }
+            
+            // Show a message to the user
+            function showMessage(text, isWin = false) {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = text;
+                
+                if (isWin) {
+                    messageElement.classList.add('win-message');
+                } else {
+                    messageElement.classList.remove('win-message');
+                }
+                
+                setTimeout(() => {
+                    if (!isGameOver) {
+                        messageElement.textContent = '';
+                    }
+                }, 2000);
+            }
+            
+            // Reset the game
+            function resetGame() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                
+                const keyboardKeys = document.querySelectorAll('.key');
+                keyboardKeys.forEach(key => {
+                    key.classList.remove('correct', 'present', 'absent');
+                });
+                
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = '';
+                messageElement.classList.remove('win-message');
+                
+                currentRow = 0;
+                currentTile = 0;
+                isGameOver = false;
+                
+                createBoard();
+            }
+            
+            // Initialize the game
+            createBoard();
+            
+            // Add event listeners for keyboard input
+            document.addEventListener('keydown', (e) => {
+                handleKeyPress(e.key);
+            });
+            
+            // Add event listeners for on-screen keyboard
+            document.querySelectorAll('.key').forEach(button => {
+                button.addEventListener('click', () => {
+                    handleKeyPress(button.dataset.key);
+                });
+            });
+            
+            // Add event listener for "How to Play" button
+            document.getElementById('showHowToPlay').addEventListener('click', () => {
+                const howToPlay = document.getElementById('howToPlay');
+                howToPlay.style.display = howToPlay.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Add event listener for "Reset Game" button
+            document.getElementById('resetGame').addEventListener('click', resetGame);
+        });
+    </script>
+</body>
+</html>
