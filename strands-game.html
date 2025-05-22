@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Strands</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .theme {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 40px);
+            grid-template-rows: repeat(8, 40px);
+            gap: 4px;
+            margin: 0 auto;
+        }
+        
+        .cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            border-radius: 4px;
+        }
+        
+        .cell.selected {
+            background-color: #ffdf88;
+        }
+        
+        /* Colors for each word */
+        .cell.spangram {
+            background-color: #0066cc; /* Blue for BIRTHDAY */
+            color: white;
+        }
+        
+        .cell.party {
+            background-color: #FF5733; /* Orange-red for PARTY */
+            color: white;
+        }
+        
+        .cell.cake {
+            background-color: #DAF7A6; /* Light green for CAKE */
+            color: black;
+        }
+        
+        .cell.celebration {
+            background-color: #FFC300; /* Gold for CELEBRATION */
+            color: black;
+        }
+        
+        .cell.cheers {
+            background-color: #C70039; /* Dark red for CHEERS */
+            color: white;
+        }
+        
+        .cell.drinks {
+            background-color: #FFB6C1; /* Light pink for DRINKS */
+            color: black;
+        }
+        
+        .cell.presents {
+            background-color: #581845; /* Purple for PRESENTS */
+            color: white;
+        }
+        
+        .word-display {
+            text-align: center;
+            margin: 20px 0;
+            height: 20px;
+            font-size: 18px;
+        }
+        
+        .word-list {
+            margin-top: 20px;
+        }
+        
+        .word-item {
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        /* Matching colors for word list items */
+        .word-item.spangram {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .word-item.spangram.found {
+            background-color: #0066cc;
+            color: white;
+        }
+        
+        .word-item.party.found {
+            background-color: #FF5733;
+            color: white;
+        }
+        
+        .word-item.cake.found {
+            background-color: #DAF7A6;
+            color: black;
+        }
+        
+        .word-item.celebration.found {
+            background-color: #FFC300;
+            color: black;
+        }
+        
+        .word-item.cheers.found {
+            background-color: #C70039;
+            color: white;
+        }
+        
+        .word-item.drinks.found {
+            background-color: #900C3F;
+            color: white;
+        }
+        
+        .word-item.presents.found {
+            background-color: #581845;
+            color: white;
+        }
+        
+        .counter {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #4e4e4e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .completion {
+            background-color: #0066cc;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .completion h2 {
+            margin-top: 0;
+        }
+        
+        .found-words {
+            text-align: left;
+            margin-top: 15px;
+        }
+        
+        .legend {
+            margin-top: 15px;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .legend-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 3px 0;
+        }
+        
+        .color-box {
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Birthday Strands</h1>
+    
+    <div class="theme">
+        <strong>Today's Theme:</strong> Another revolution! 🎉
+    </div>
+    
+    <div class="counter">
+        Found: <span id="foundCount">0</span>/<span id="totalWords">7</span>
+    </div>
+    
+    <div class="grid" id="grid"></div>
+    
+    <div class="word-display" id="currentWord"></div>
+    
+    <div class="word-list" id="wordList">
+        <div class="word-item spangram" id="spangramItem">Find the spangram!</div>
+    </div>
+    
+    <div class="legend" id="legend">
+        <div class="legend-title">Word Colors</div>
+        <div id="legendItems"></div>
+    </div>
+    
+    <div class="buttons">
+        <button id="resetBtn">Reset Game</button>
+        <button id="newGameBtn">New Game</button>
+    </div>
+    
+    <div class="completion" id="completion">
+        <h2>Congratulations!</h2>
+        <p>You found all the words!</p>
+        <p>Happy 27th Birthday!</p>
+        <div class="found-words">
+            <h3>Words you found:</h3>
+            <div id="foundWordsList"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Game constants
+        const GRID_WIDTH = 6;
+        const GRID_HEIGHT = 8;
+        
+        // Words to find
+        const wordList = ['CAKE', 'PARTY', 'DRINKS', 'CHEERS', 'CELEBRATION', 'PRESENTS'];
+        const spangram = 'BIRTHDAY';
+        
+        // The specific paths for each word (column, row) - using 0-indexed positions
+        const wordPaths = {
+            'PARTY': [
+                {col: 2, row: 1}, // P
+                {col: 1, row: 0}, // A
+                {col: 0, row: 0}, // R
+                {col: 0, row: 1}, // T
+                {col: 1, row: 1}  // Y
+            ],
+            'CAKE': [
+                {col: 1, row: 3}, // C
+                {col: 0, row: 3}, // A
+                {col: 0, row: 2}, // K
+                {col: 1, row: 2}  // E
+            ],
+            'CELEBRATION': [
+                {col: 0, row: 7}, // C
+                {col: 1, row: 7}, // E
+                {col: 2, row: 7}, // L
+                {col: 1, row: 6}, // E
+                {col: 2, row: 5}, // B
+                {col: 1, row: 5}, // R
+                {col: 0, row: 6}, // A
+                {col: 0, row: 5}, // T
+                {col: 0, row: 4}, // I
+                {col: 1, row: 4}, // O
+                {col: 2, row: 3}  // N
+            ],
+            'BIRTHDAY': [
+                {col: 2, row: 0}, // B
+                {col: 3, row: 1}, // I
+                {col: 2, row: 2}, // R
+                {col: 3, row: 3}, // T
+                {col: 2, row: 4}, // H
+                {col: 3, row: 5}, // D
+                {col: 2, row: 6}, // A
+                {col: 3, row: 7}  // Y
+            ],
+            'CHEERS': [
+                {col: 3, row: 6}, // C
+                {col: 4, row: 7}, // H
+                {col: 5, row: 7}, // E
+                {col: 5, row: 6}, // E
+                {col: 4, row: 6}, // R
+                {col: 5, row: 5}  // S
+            ],
+            'DRINKS': [
+                {col: 4, row: 5}, // D
+                {col: 3, row: 4}, // R
+                {col: 4, row: 4}, // I
+                {col: 5, row: 4}, // N
+                {col: 5, row: 3}, // K
+                {col: 5, row: 2}  // S
+            ],
+            'PRESENTS': [
+                {col: 5, row: 0}, // P
+                {col: 4, row: 0}, // R
+                {col: 3, row: 0}, // E
+                {col: 4, row: 1}, // S
+                {col: 3, row: 2}, // E
+                {col: 4, row: 3}, // N
+                {col: 4, row: 2}, // T
+                {col: 5, row: 1}  // S
+            ]
+        };
+        
+        // Word colors for each word
+        const wordColors = {
+            'PARTY': { class: 'party', color: '#FF5733' },
+            'CAKE': { class: 'cake', color: '#DAF7A6' },
+            'CELEBRATION': { class: 'celebration', color: '#FFC300' },
+            'BIRTHDAY': { class: 'spangram', color: '#0066cc' },
+            'CHEERS': { class: 'cheers', color: '#C70039' },
+            'DRINKS': { class: 'drinks', color: '#FFB6C1' }, // Updated to light pink
+            'PRESENTS': { class: 'presents', color: '#581845' }
+        };
+        
+        // Game state
+        let grid = [];
+        let selectedCells = [];
+        let foundWords = [];
+        let spangramFound = false;
+        
+        // DOM elements
+        const gridElement = document.getElementById('grid');
+        const currentWordElement = document.getElementById('currentWord');
+        const wordListElement = document.getElementById('wordList');
+        const spangramItem = document.getElementById('spangramItem');
+        const foundCountElement = document.getElementById('foundCount');
+        const resetButton = document.getElementById('resetBtn');
+        const newGameButton = document.getElementById('newGameBtn');
+        const completionElement = document.getElementById('completion');
+        const foundWordsListElement = document.getElementById('foundWordsList');
+        const legendElement = document.getElementById('legend');
+        
+        // Initialize the game
+        function initGame() {
+            // Reset game state
+            grid = [];
+            selectedCells = [];
+            foundWords = [];
+            spangramFound = false;
+            
+            // Create the grid with custom letters
+            const customGrid = [
+                ['R', 'A', 'B', 'E', 'R', 'P'],
+                ['T', 'Y', 'P', 'I', 'S', 'S'],
+                ['K', 'E', 'R', 'E', 'T', 'S'],
+                ['A', 'C', 'N', 'T', 'N', 'K'],
+                ['I', 'O', 'H', 'R', 'I', 'N'], 
+                ['T', 'R', 'B', 'D', 'D', 'S'], 
+                ['A', 'E', 'A', 'C', 'R', 'E'],
+                ['C', 'E', 'L', 'Y', 'H', 'E']
+            ];
+            
+            // Initialize grid data
+            for (let i = 0; i < GRID_HEIGHT; i++) {
+                grid[i] = [];
+                for (let j = 0; j < GRID_WIDTH; j++) {
+                    grid[i][j] = {
+                        letter: customGrid[i][j],
+                        isFound: false,
+                        isSpangram: false,
+                        foundWord: null
+                    };
+                }
+            }
+            
+            // Mark spangram cells
+            for (const coord of wordPaths[spangram]) {
+                grid[coord.row][coord.col].isSpangram = true;
+            }
+            
+            // Render the grid and word list
+            renderGrid();
+            updateWordList();
+            
+            // Reset count and hide completion
+            foundCountElement.textContent = '0';
+            completionElement.style.display = 'none';
+        }
+        
+        // Render the grid
+        function renderGrid() {
+            gridElement.innerHTML = '';
+            
+            for (let i = 0; i < GRID_HEIGHT; i++) {
+                for (let j = 0; j < GRID_WIDTH; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = grid[i][j].letter;
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    // Add classes for found words
+                    if (grid[i][j].isFound) {
+                        if (grid[i][j].isSpangram) {
+                            cell.classList.add('spangram');
+                        } else if (grid[i][j].foundWord) {
+                            // Add class based on which word was found
+                            const wordClass = wordColors[grid[i][j].foundWord].class;
+                            cell.classList.add(wordClass);
+                        }
+                    }
+                    
+                    // Event listeners
+                    cell.addEventListener('mousedown', startSelection);
+                    cell.addEventListener('mouseover', updateSelection);
+                    cell.addEventListener('touchstart', handleTouchStart, { passive: false });
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+            
+            // Add end selection handlers
+            document.addEventListener('mouseup', endSelection);
+            document.addEventListener('touchend', endSelection);
+        }
+        
+        // Update the word list display
+        function updateWordList() {
+            // Clear existing word items (except spangram)
+            const items = wordListElement.querySelectorAll('.word-item:not(.spangram)');
+            items.forEach(item => item.remove());
+            
+            // Update spangram item
+            if (spangramFound) {
+                spangramItem.textContent = spangram + ' (Spangram)';
+                spangramItem.classList.add('found');
+            } else {
+                spangramItem.textContent = 'Find the spangram!';
+                spangramItem.classList.remove('found');
+            }
+            
+            // Add counter
+            const counter = document.createElement('div');
+            counter.className = 'word-item';
+            counter.innerHTML = `<strong>Words found:</strong> ${foundWords.length} out of ${wordList.length}`;
+            wordListElement.appendChild(counter);
+            
+            // Add found words with their colors
+            foundWords.forEach(word => {
+                const item = document.createElement('div');
+                item.className = `word-item ${wordColors[word].class} found`;
+                item.textContent = word;
+                wordListElement.appendChild(item);
+            });
+            
+            // Update legend if any words found
+            updateLegend();
+        }
+        
+        // Update the legend with all found words
+        function updateLegend() {
+            const legendEl = document.getElementById('legend');
+            const legendItems = document.getElementById('legendItems');
+            legendItems.innerHTML = '';
+            
+            // Only show legend if at least one word found
+            if (foundWords.length > 0 || spangramFound) {
+                legendEl.style.display = 'block';
+                
+                // Add spangram if found
+                if (spangramFound) {
+                    addLegendItem('BIRTHDAY (Spangram)', wordColors['BIRTHDAY'].color);
+                }
+                
+                // Add all found words
+                foundWords.forEach(word => {
+                    addLegendItem(word, wordColors[word].color);
+                });
+            } else {
+                legendEl.style.display = 'none';
+            }
+        }
+        
+        // Helper to add a legend item
+        function addLegendItem(text, color) {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            
+            const colorBox = document.createElement('div');
+            colorBox.className = 'color-box';
+            colorBox.style.backgroundColor = color;
+            
+            const textSpan = document.createElement('span');
+            textSpan.textContent = text;
+            
+            item.appendChild(colorBox);
+            item.appendChild(textSpan);
+            legendItems.appendChild(item);
+        }
+        
+        // Start word selection
+        function startSelection(event) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            
+            selectedCells = [{ row, col }];
+            updateSelectedDisplay();
+        }
+        
+        // Update selection when moving over cells
+        function updateSelection(event) {
+            if (selectedCells.length === 0) return;
+            
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            const lastCell = selectedCells[selectedCells.length - 1];
+            
+            // Check if adjacent
+            if (isAdjacent(lastCell, { row, col })) {
+                // Check if already in selection
+                const existingIndex = selectedCells.findIndex(c => c.row === row && c.col === col);
+                
+                if (existingIndex === -1) {
+                    // Add new cell
+                    selectedCells.push({ row, col });
+                } else if (existingIndex === selectedCells.length - 2) {
+                    // Going back to previous cell
+                    selectedCells.pop();
+                }
+                
+                updateSelectedDisplay();
+            }
+        }
+        
+        // Handle touch start
+        function handleTouchStart(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (element && element.classList.contains('cell')) {
+                const row = parseInt(element.dataset.row);
+                const col = parseInt(element.dataset.col);
+                
+                selectedCells = [{ row, col }];
+                updateSelectedDisplay();
+                
+                // Add touchmove handler
+                document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            }
+        }
+        
+        // Handle touch move
+        function handleTouchMove(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (element && element.classList.contains('cell')) {
+                const row = parseInt(element.dataset.row);
+                const col = parseInt(element.dataset.col);
+                updateSelection({ target: element });
+            }
+        }
+        
+        // End selection
+        function endSelection() {
+            if (selectedCells.length === 0) return;
+            
+            const word = getSelectedWord();
+            checkWord(word);
+            
+            // Clear selection
+            selectedCells = [];
+            updateSelectedDisplay();
+            currentWordElement.textContent = '';
+            
+            // Remove touchmove handler if it was added
+            document.removeEventListener('touchmove', handleTouchMove);
+        }
+        
+        // Check if cells are adjacent
+        function isAdjacent(cell1, cell2) {
+            const rowDiff = Math.abs(cell1.row - cell2.row);
+            const colDiff = Math.abs(cell1.col - cell2.col);
+            return rowDiff <= 1 && colDiff <= 1 && !(rowDiff === 0 && colDiff === 0);
+        }
+        
+        // Get selected word
+        function getSelectedWord() {
+            return selectedCells.map(cell => grid[cell.row][cell.col].letter).join('');
+        }
+        
+        // Update visual display of selected cells
+        function updateSelectedDisplay() {
+            // Reset all cells
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => cell.classList.remove('selected'));
+            
+            // Highlight selected cells
+            selectedCells.forEach(cell => {
+                const selector = `.cell[data-row="${cell.row}"][data-col="${cell.col}"]`;
+                const cellElement = document.querySelector(selector);
+                if (cellElement) {
+                    cellElement.classList.add('selected');
+                }
+            });
+            
+            // Update current word display
+            currentWordElement.textContent = getSelectedWord();
+        }
+        
+        // Check if word is valid
+        function checkWord(word) {
+            // Convert selected cells to coordinates
+            const selectedCoords = selectedCells.map(cell => ({ col: cell.col, row: cell.row }));
+            
+            // Check regular words
+            for (const wordToCheck of wordList) {
+                if (word === wordToCheck && !foundWords.includes(wordToCheck)) {
+                    // Check if path matches expected path
+                    const expectedPath = wordPaths[wordToCheck];
+                    let pathMatches = true;
+                    
+                    // Check length
+                    if (selectedCoords.length !== expectedPath.length) {
+                        pathMatches = false;
+                    } else {
+                        // Check coordinates (in any order)
+                        for (const expectedCoord of expectedPath) {
+                            const found = selectedCoords.some(coord => 
+                                coord.row === expectedCoord.row && coord.col === expectedCoord.col);
+                            
+                            if (!found) {
+                                pathMatches = false;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (pathMatches) {
+                        // Mark word as found
+                        foundWords.push(wordToCheck);
+                        
+                        // Mark cells
+                        for (const coord of expectedPath) {
+                            grid[coord.row][coord.col].isFound = true;
+                            grid[coord.row][coord.col].foundWord = wordToCheck;
+                        }
+                        
+                        // Update display
+                        renderGrid();
+                        updateWordList();
+                        foundCountElement.textContent = foundWords.length + (spangramFound ? 1 : 0);
+                        
+                        // Check completion
+                        checkCompletion();
+                        return true;
+                    }
+                }
+            }
+            
+            // Check spangram
+            if (word === spangram && !spangramFound) {
+                const expectedPath = wordPaths[spangram];
+                let pathMatches = true;
+                
+                // Check length
+                if (selectedCoords.length !== expectedPath.length) {
+                    pathMatches = false;
+                } else {
+                    // Check coordinates (in any order)
+                    for (const expectedCoord of expectedPath) {
+                        const found = selectedCoords.some(coord => 
+                            coord.row === expectedCoord.row && coord.col === expectedCoord.col);
+                        
+                        if (!found) {
+                            pathMatches = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (pathMatches) {
+                    spangramFound = true;
+                    
+                    // Mark cells
+                    for (const coord of expectedPath) {
+                        grid[coord.row][coord.col].isFound = true;
+                        grid[coord.row][coord.col].isSpangram = true;
+                        grid[coord.row][coord.col].foundWord = spangram;
+                    }
+                    
+                    // Update display
+                    renderGrid();
+                    updateWordList();
+                    foundCountElement.textContent = foundWords.length + 1;
+                    
+                    // Check completion
+                    checkCompletion();
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Check if all words found
+        function checkCompletion() {
+            if (foundWords.length === wordList.length && spangramFound) {
+                // Show completion message
+                updateCompletionMessage();
+                completionElement.style.display = 'block';
+            }
+        }
+        
+        // Update completion message
+        function updateCompletionMessage() {
+            foundWordsListElement.innerHTML = '';
+            
+            // Add spangram
+            const spangramElement = document.createElement('div');
+            spangramElement.style.backgroundColor = wordColors[spangram].color;
+            spangramElement.style.color = 'white';
+            spangramElement.style.padding = '5px';
+            spangramElement.style.borderRadius = '4px';
+            spangramElement.style.marginBottom = '5px';
+            spangramElement.textContent = `${spangram} (Spangram)`;
+            foundWordsListElement.appendChild(spangramElement);
+            
+            // Add other words
+            foundWords.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.style.backgroundColor = wordColors[word].color;
+                wordElement.style.color = word === 'CAKE' || word === 'CELEBRATION' ? 'black' : 'white';
+                wordElement.style.padding = '5px';
+                wordElement.style.borderRadius = '4px';
+                wordElement.style.marginBottom = '5px';
+                wordElement.textContent = word;
+                foundWordsListElement.appendChild(wordElement);
+            });
+        }
+        
+        // Event listeners for buttons
+        resetButton.addEventListener('click', () => {
+            // Clear found words but keep the grid
+            foundWords = [];
+            spangramFound = false;
+            
+            // Reset all cells
+            for (let i = 0; i < GRID_HEIGHT; i++) {
+                for (let j = 0; j < GRID_WIDTH; j++) {
+                    grid[i][j].isFound = false;
+                    grid[i][j].foundWord = null;
+                }
+            }
+            
+            // Restore spangram markers
+            for (const coord of wordPaths[spangram]) {
+                grid[coord.row][coord.col].isSpangram = true;
+            }
+            
+            // Update display
+            renderGrid();
+            updateWordList();
+            foundCountElement.textContent = '0';
+            completionElement.style.display = 'none';
+        });
+        
+        newGameButton.addEventListener('click', initGame);
+        
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
